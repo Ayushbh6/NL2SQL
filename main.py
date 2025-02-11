@@ -2,7 +2,7 @@ import json
 import logging
 import os
 
-from db_introspection import get_db_connection, extract_schema
+from db_introspection import get_db_connection, extract_schema, build_join_flows
 from metadata_cleaner import clean_metadata
 from token_utils import count_tokens, chunk_text
 from llm_client import generate_summary, generate_mini_summary
@@ -65,9 +65,18 @@ def main():
             summary = generate_summary(table_name, table_text, config["llm"])
             optimized_schema[table_name] = summary
 
+    # Generate join flow descriptions from the cleaned schema.
+    join_flows = build_join_flows(cleaned_schema)
+
+    # Append flows to the final output dictionary.
+    final_output = {
+         "optimized_schema": optimized_schema,
+         "join_flows": join_flows
+    }
+
     output_file = "optimized_schema.json"
-    logging.info(f"Saving optimized schema to {output_file}...")
-    save_optimized_schema(optimized_schema, output_file)
+    logging.info(f"Saving optimized schema and join flows to {output_file}...")
+    save_optimized_schema(final_output, output_file)
     logging.info("Process completed successfully.")
 
 if __name__ == "__main__":
