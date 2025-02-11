@@ -65,14 +65,16 @@ def main():
             summary = generate_summary(table_name, table_text, config["llm"])
             optimized_schema[table_name] = summary
 
-    # Generate join flow descriptions from the cleaned schema.
+    # Generate join flow descriptions from the cleaned schema, grouped by table.
     join_flows = build_join_flows(cleaned_schema)
 
-    # Append flows to the final output dictionary.
-    final_output = {
-         "optimized_schema": optimized_schema,
-         "join_flows": join_flows
-    }
+    # Combine the optimized summary and join flows for each table.
+    final_output = {}
+    for table, summary in optimized_schema.items():
+         final_output[table] = {
+             "summary": summary,
+             "join_flows": join_flows.get(table, [])
+         }
 
     output_file = "optimized_schema.json"
     logging.info(f"Saving optimized schema and join flows to {output_file}...")

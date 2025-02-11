@@ -179,18 +179,11 @@ def extract_schema(conn):
 
 def build_join_flows(schema):
     """
-    Generate a list of join flow descriptions using the extracted schema.
-    Each description is a chain of join relationships expressed in a sentence.
-
-    For example:
-    "Product table is connected to Category table on column 'category_id' referencing 'id', which is connected to Supplier table on column 'supplier_id' referencing 'id'."
-
-    This function builds a directed graph from the schema's foreign keys and then uses a DFS 
-    to traverse and build descriptive join chains.
+    Generate a mapping of join flow descriptions for each table using the extracted schema.
+    Each key is a table name (starting table) and its value is a list of descriptive join chains.
     """
-    flows = []
+    flows_by_table = {}
     # Build a directed graph using foreign key relationships.
-    # Each edge: from current table to referenced table with join details.
     graph = {}
     for table, data in schema.items():
         for fk in data.get("foreign_keys", []):
@@ -200,16 +193,14 @@ def build_join_flows(schema):
                 "referenced_column": fk["referenced_column"]
             })
 
-    def dfs(current_table, chain, visited):
-        # If we already have a chain, add it to the flows list.
+    def dfs(current_table, chain, visited, origin):
         if chain:
-            flows.append(chain)
+            flows_by_table.setdefault(origin, []).append(chain)
         if current_table in graph:
             for edge in graph[current_table]:
                 next_table = edge["referenced_table"]
                 if next_table in visited:
                     continue
-                # Build the join chain sentence.
                 if not chain:
                     new_chain = (f"{current_table} table is connected to {next_table} table "
                                  f"on column '{edge['parent_column']}' referencing '{edge['referenced_column']}'")
@@ -217,10 +208,10 @@ def build_join_flows(schema):
                     new_chain = (chain + f", which is connected to {next_table} table "
                                  f"on column '{edge['parent_column']}' referencing '{edge['referenced_column']}'")
                 new_visited = visited.union({next_table})
-                dfs(next_table, new_chain, new_visited)
+                dfs(next_table, new_chain, new_visited, origin)
 
     # Start a DFS from each table that has outgoing foreign keys.
     for start_table in graph:
-        dfs(start_table, "", {start_table})
+        dfs(start_table, "", {start_table}, start_table)
 
-    return flows 
+    return flows_by_table 
