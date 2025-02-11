@@ -1,0 +1,17 @@
+{
+    "db": {
+        "driver": "ODBC Driver 17 for SQL Server",
+        "server": "YOUR_SERVER",
+        "database": "YOUR_DATABASE",
+        "username": "YOUR_USERNAME",
+        "password": "YOUR_PASSWORD"
+    },
+    "llm": {
+         "api_key": "api_key_here",
+         "model": "o3-mini"
+    },
+    "token": {
+         "max_tokens": 3000,
+         "llm_encoding": "o200k_base"
+    }
+} 

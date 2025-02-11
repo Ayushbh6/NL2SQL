@@ -1,0 +1,6 @@
+pyodbc
+tiktoken
+openai
+sqlalchemy
+pandas
+networkx
